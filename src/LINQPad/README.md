@@ -15,14 +15,23 @@ Please see "[coming soon](./README.md#coming-soon)" section for future planned s
 
 Set the following "passwords" in LINQPad (File -> Password Manager):
 
-- clientId
-- clientSecret
-- tenantId
-- redirectUri
+- *clientId*
+- *tenantId*
+- *redirectUri*
+
+The following "passwords" also needed depending on authentication mode:
+
+- Client secret authentication
+  - *clientSecret*
+- Certificate authentication
+  - *certificateThumbprint*
+- Device code authentication
+  - *clientIdPublic*
 
 ## Coming soon
 
 - ~~Public client (delegated) authentication~~
 - ~~Certificate authentication~~
+- Revised naming scheme for "passwords" since public / device code was added after the fact
 
 ## Research topics
