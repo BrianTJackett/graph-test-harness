@@ -30,9 +30,8 @@ private GraphServiceClient GetAuthenticatedGraphClient()
 
 private static IAuthenticationProvider CreateAuthorizationProvider()
 {
-	var clientId = Util.GetPassword("clientId");
-	var clientSecret = Util.GetPassword("clientSecret");
-	var redirectUri = Util.GetPassword("redirectUri");
+	var clientId = Util.GetPassword("clientIdPublic");
+	var redirectUri = Util.GetPassword("redirectUriPublic");
 	var tenantId = Util.GetPassword("tenantId");
 	var authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
 
@@ -40,44 +39,36 @@ private static IAuthenticationProvider CreateAuthorizationProvider()
 	List<string> scopes = new List<string>();
 	scopes.Add("https://graph.microsoft.com/.default");
 
-	var cca = ConfidentialClientApplicationBuilder.Create(clientId)
+	var pca = PublicClientApplicationBuilder.Create(clientId)
 											.WithAuthority(authority)
 											.WithRedirectUri(redirectUri)
-											.WithClientSecret(clientSecret)
 											.Build();
-	return new MsalAuthenticationProvider(cca, scopes.ToArray());
+	return new DeviceCodeFlowAuthorizationProvider(pca, scopes);
 }
 
 // Define other methods and classes here
-public class MsalAuthenticationProvider : IAuthenticationProvider
+public class DeviceCodeFlowAuthorizationProvider : IAuthenticationProvider
 {
-	private IConfidentialClientApplication _clientApplication;
-	private string[] _scopes;
-
-	public MsalAuthenticationProvider(IConfidentialClientApplication clientApplication, string[] scopes)
+	private readonly IPublicClientApplication _application;
+	private readonly List<string> _scopes;
+	private string _authToken;
+	public DeviceCodeFlowAuthorizationProvider(IPublicClientApplication application, List<string> scopes)
 	{
-		_clientApplication = clientApplication;
+		_application = application;
 		_scopes = scopes;
 	}
-
-	/// <summary>
-	/// Update HttpRequestMessage with credentials
-	/// </summary>
 	public async Task AuthenticateRequestAsync(HttpRequestMessage request)
 	{
-		var token = await GetTokenAsync();
-		request.Headers.Authorization = new AuthenticationHeaderValue("bearer", token);
-	}
-
-	/// <summary>
-	/// Acquire Token 
-	/// </summary>
-	public async Task<string> GetTokenAsync()
-	{
-		AuthenticationResult authResult = null;
-		authResult = await _clientApplication.AcquireTokenForClient(_scopes)
-							.ExecuteAsync();
-		return authResult.AccessToken;
+		if (string.IsNullOrEmpty(_authToken))
+		{
+			var result = await _application.AcquireTokenWithDeviceCode(_scopes, callback =>
+			{
+				Console.WriteLine(callback.Message);
+				return Task.FromResult(0);
+			}).ExecuteAsync();
+			_authToken = result.AccessToken;
+		}
+		request.Headers.Authorization = new AuthenticationHeaderValue("bearer", _authToken);
 	}
 }
 
