@@ -1,3 +1,7 @@
+# Microsoft Graph test harness - LINQPad
+
+This sample currently supports Microsoft Graph C# SDK for confidential client (application) authentication.  Please see "coming soon" section for future planned support.
+
 ## Prerequisites
   
 - [LINQPad v6](https://www.linqpad.net/LINQPad6.aspx) installed on development machine.  (**Note:** Sample was built and tested using LINQPad v6.7.5 (x64).  May work with other versions but those have not been tested.)
@@ -8,3 +12,8 @@ Set the following "passwords" in LINQPad (File -> Password Manager):
   - clientSecret
   - tenantId
   - redirectUri
+
+
+## Coming soon
+
+- Public client (delegated) authentication
