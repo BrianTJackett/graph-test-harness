@@ -1,6 +1,11 @@
 # Microsoft Graph test harness - LINQPad
 
-This sample currently supports Microsoft Graph C# SDK for confidential client (application) authentication.  Please see "coming soon" section for future planned support.
+## Supported use cases
+
+- Microsoft Graph C# SDK for confidential client (application) authentication
+- Microsoft Graph C# SDK for public client (delegated) device code authentication
+
+Please see "coming soon" section for future planned support.
 
 ## Prerequisites
   
@@ -16,4 +21,8 @@ Set the following "passwords" in LINQPad (File -> Password Manager):
 
 ## Coming soon
 
-- Public client (delegated) authentication
+- ~~Public client (delegated) authentication~~
+
+## Research topics
+
+- Certificate authentication
