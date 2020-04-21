@@ -5,7 +5,7 @@
 - Microsoft Graph C# SDK for confidential client (application) authentication
 - Microsoft Graph C# SDK for public client (delegated) device code authentication
 
-Please see "coming soon" section for future planned support.
+Please see "[coming soon](./README.md#coming-soon)" section for future planned support.
 
 ## Prerequisites
   
