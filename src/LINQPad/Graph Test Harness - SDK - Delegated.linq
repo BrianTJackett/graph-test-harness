@@ -39,9 +39,14 @@ private static IAuthenticationProvider CreateAuthorizationProvider()
 	List<string> scopes = new List<string>();
 	scopes.Add("https://graph.microsoft.com/.default");
 
-	var pca = PublicClientApplicationBuilder.Create(clientId)
-											.WithAuthority(authority)
-											.WithRedirectUri(redirectUri)
+	PublicClientApplicationOptions options = new PublicClientApplicationOptions()
+	{
+		ClientId = clientId,
+		TenantId = tenantId,
+		RedirectUri = redirectUri,
+	};
+
+	var pca = PublicClientApplicationBuilder.CreateWithApplicationOptions(options)
 											.Build();
 	return new DeviceCodeFlowAuthorizationProvider(pca, scopes);
 }

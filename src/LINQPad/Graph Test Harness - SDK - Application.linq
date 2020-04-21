@@ -10,28 +10,29 @@
   <Namespace>System.Text.Json.Serialization</Namespace>
   <Namespace>System.Net.Http.Headers</Namespace>
   <Namespace>System.Threading.Tasks</Namespace>
+  <Namespace>System.Security.Cryptography.X509Certificates</Namespace>
 </Query>
 
 private static GraphServiceClient _graphClient;
 
 void Main()
 {
-	GraphServiceClient graphClient = GetAuthenticatedGraphClient();
+	GraphServiceClient graphClient = GetAuthenticatedGraphClient(AuthenticationMode.ClientSecret);
 	
 	graphClient.Users.Request().GetAsync().Result[0].DisplayName.Dump("Graph result");
 }
 
-private GraphServiceClient GetAuthenticatedGraphClient()
+private GraphServiceClient GetAuthenticatedGraphClient(AuthenticationMode authenticationMode)
 {
-	var authenticationProvider = CreateAuthorizationProvider();
+	var authenticationProvider = CreateAuthorizationProvider(authenticationMode);
 	_graphClient = new GraphServiceClient(authenticationProvider);
 	return _graphClient;
 }
 
-private static IAuthenticationProvider CreateAuthorizationProvider()
+private static IAuthenticationProvider CreateAuthorizationProvider(AuthenticationMode authenticationMode)
 {
 	var clientId = Util.GetPassword("clientId");
-	var clientSecret = Util.GetPassword("clientSecret");
+	var certificateThumbprint = Util.GetPassword("certificateThumbprint");
 	var redirectUri = Util.GetPassword("redirectUri");
 	var tenantId = Util.GetPassword("tenantId");
 	var authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
@@ -40,12 +41,53 @@ private static IAuthenticationProvider CreateAuthorizationProvider()
 	List<string> scopes = new List<string>();
 	scopes.Add("https://graph.microsoft.com/.default");
 
-	var cca = ConfidentialClientApplicationBuilder.Create(clientId)
-											.WithAuthority(authority)
-											.WithRedirectUri(redirectUri)
-											.WithClientSecret(clientSecret)
-											.Build();
+	ConfidentialClientApplicationOptions options = new ConfidentialClientApplicationOptions()
+	{
+		ClientId = clientId,
+		TenantId = tenantId,
+		RedirectUri = redirectUri,
+	};
+
+	var builder = ConfidentialClientApplicationBuilder.CreateWithApplicationOptions(options);
+
+	switch (authenticationMode)
+	{
+		case AuthenticationMode.ClientSecret:
+			var clientSecret = Util.GetPassword("clientSecret");
+
+			builder.WithClientSecret(clientSecret);
+			break;
+		case AuthenticationMode.Certificate:
+			// defaulting to CurrentUser certificate store under My (Personal), change these if stored elsewhere
+			X509Certificate2 cert = GetCertificate(certificateThumbprint, StoreName.My, StoreLocation.CurrentUser);
+
+			builder.WithCertificate(cert);
+			break;
+	}
+
+	var cca = builder.Build();
+	
 	return new MsalAuthenticationProvider(cca, scopes);
+}
+
+private static X509Certificate2 GetCertificate(string thumbprint, StoreName storeName, StoreLocation storeLocation)
+{
+	X509Store store = new X509Store(storeName, storeLocation);
+	try
+	{
+		store.Open(OpenFlags.ReadOnly);
+
+		var col = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
+		if (col == null || col.Count == 0)
+		{
+			return null;
+		}
+		return col[0];
+	}
+	finally
+	{
+		store.Close();
+	}
 }
 
 // Define other methods and classes here
@@ -96,4 +138,10 @@ public class AuthHandler : DelegatingHandler
 		await _authenticationProvider.AuthenticateRequestAsync(request);
 		return await base.SendAsync(request, cancellationToken);
 	}
+}
+
+public enum AuthenticationMode
+{
+	ClientSecret=1,
+	Certificate=2
 }
