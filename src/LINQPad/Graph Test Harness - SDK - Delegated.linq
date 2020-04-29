@@ -1,9 +1,7 @@
 <Query Kind="Program">
   <NuGetReference>Microsoft.Graph</NuGetReference>
-  <NuGetReference Prerelease="true">Microsoft.Graph.Auth</NuGetReference>
   <NuGetReference>Microsoft.Identity.Client</NuGetReference>
   <Namespace>Microsoft.Graph</Namespace>
-  <Namespace>Microsoft.Graph.Auth</Namespace>
   <Namespace>Microsoft.Identity.Client</Namespace>
   <Namespace>System.Net.Http</Namespace>
   <Namespace>System.Text.Json</Namespace>
